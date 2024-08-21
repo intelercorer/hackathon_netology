@@ -1,0 +1,58 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Прогнозирование оттока клиентов</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            padding: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Загрузите файл</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" id="file">
+        <button type="submit">Загрузить</button>
+    </form>
+
+	{% if visualization %}
+    <h2>Визуализация</h2>
+    <div id="visualization">
+            <img src="{{ url_for('static', filename='plot.png') }}" alt="График">
+    </div>
+	{% endif %}
+	
+	{% if predictions %}
+    <h2>Результаты предсказаний</h2>
+    <div id="predictions">
+			<form action="/download" method="get">
+                <button type="submit">Скачать результаты прогнозирования</button>
+            </form>
+            <table>
+                <thead>
+                    <tr>
+                        <th>CustomerId</th>
+                        <th>Probability</th>
+                        <th>Recommendation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prediction in predictions %}
+                    <tr>
+                        <td>{{ prediction['CustomerId'] }}</td>
+                        <td>{{ prediction['Probability'] }}</td>
+                        <td>{{ prediction['Recommendation'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+    </div>
+	{% endif %}
+</body>
+</html>

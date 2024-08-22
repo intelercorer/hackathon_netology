@@ -12,28 +12,46 @@
             padding: 8px;
             text-align: center;
         }
+        #slider-value {
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
     <h1>Загрузите файл</h1>
     <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" id="file">
+        <input type="file" name="file" id="file"><br><br>
+
+        <label for="models">Выберите модель:</label>
+        <select name="models" id="models">
+            {% for k in models_data %}
+                <option value="{{ k }}">{{ k }}</option>
+            {% endfor %}
+        </select><br><br>
+
         <button type="submit">Загрузить</button>
     </form>
 
-	{% if visualization %}
-    <h2>Визуализация</h2>
-    <div id="visualization">
+    {% if visualization %}
+        <h2>Визуализация</h2>
+        <div id="visualization">
             <img src="{{ url_for('static', filename='plot.png') }}" alt="График">
-    </div>
-	{% endif %}
-	
-	{% if predictions %}
-    <h2>Результаты предсказаний</h2>
-    <div id="predictions">
-			<form action="/download" method="get">
+        </div>
+    {% endif %}
+    
+    {% if predictions %}
+        <h2>Результаты предсказаний</h2>
+		<p>Модель: {{ selected_model }}</p>
+		<p>Размер датасета: {{ dataset_size }}</p>
+        <p>Количество предсказанных стабильных клиентов: {{ count_0 }}</p>
+        <p>Количество предсказанных клиентов в зоне риска: {{ count_1 }}</p>
+        <div id="predictions">
+            <form action="/download" method="get">
                 <button type="submit">Скачать результаты прогнозирования</button>
             </form>
+			<label for="slider">Минимальная вероятность:</label>
+			<input type="range" id="slider" name="threshold" min="0" max="1" value="0.5" step="0.01" oninput="updateTable()">
+			<span id="slider-value">0.5</span><br><br>
             <table>
                 <thead>
                     <tr>
@@ -42,7 +60,7 @@
                         <th>Recommendation</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="prediction-table">
                     {% for prediction in predictions %}
                     <tr>
                         <td>{{ prediction['CustomerId'] }}</td>
@@ -52,7 +70,27 @@
                     {% endfor %}
                 </tbody>
             </table>
-    </div>
-	{% endif %}
+        </div>
+    {% endif %}
+    
+    <script>
+        const slider = document.getElementById("slider");
+        const sliderValue = document.getElementById("slider-value");
+        const predictionTable = document.getElementById("prediction-table");
+
+        function updateTable() {
+            const threshold = parseFloat(slider.value);
+            sliderValue.innerHTML = threshold;
+
+            for (let row of predictionTable.rows) {
+                const probability = parseFloat(row.cells[1].innerHTML);
+                if (probability < threshold) {
+                    row.style.display = 'none';
+                } else {
+                    row.style.display = '';
+                }
+            }
+        }
+    </script>
 </body>
 </html>
